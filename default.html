@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <title>{% if page.title %}{{ page.title }} | {% endif %}{{ site.title }}</title>
+  <meta name="description" content="{% if page.excerpt %}{{ page.excerpt | strip_html | strip_newlines | truncate: 160 }}{% else %}{{ site.description }}{% endif %}">
+  
+  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+  <link rel="canonical" href="{{ page.url | replace:'index.html','' | absolute_url }}">
+  <link rel="alternate" type="application/rss+xml" title="{{ site.title }}" href="{{ '/feed.xml' | relative_url }}">
+  
+  {% seo %}
+</head>
+<body>
+  <div class="container">
+    <header class="main-header">
+      <nav>
+        <a href="{{ '/' | relative_url }}" class="logo">🤖 {{ site.title }}</a>
+        <ul class="nav-links">
+          <li><a href="{{ '/' | relative_url }}">Home</a></li>
+          <li><a href="{{ '/archive' | relative_url }}">Archive</a></li>
+          <li><a href="{{ '/about' | relative_url }}">About</a></li>
+        </ul>
+      </nav>
+    </header>
+    
+    <main>
+      {{ content }}
+    </main>
+    
+    <footer>
+      <p>&copy; {{ site.time | date: '%Y' }} {{ site.title }}. Powered by AI and Jekyll.</p>
+    </footer>
+  </div>
+</body>
+</html>

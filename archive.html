@@ -1,0 +1,25 @@
+---
+layout: default
+title: Archive
+permalink: /archive/
+---
+
+<div class="archive">
+  <h1>Newsletter Archive</h1>
+  <p>Browse all AI Japan Daily newsletters</p>
+  
+  {% assign posts_by_year = site.posts | group_by_exp: "post", "post.date | date: '%Y'" %}
+  {% for year in posts_by_year %}
+    <section class="year-section">
+      <h2>{{ year.name }}</h2>
+      <ul class="archive-list">
+        {% for post in year.items %}
+          <li>
+            <time>{{ post.date | date: "%b %d" }}</time>
+            <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </section>
+  {% endfor %}
+</div>

@@ -1,0 +1,36 @@
+# Site settings
+title: AI Japan Daily
+email: your-email@example.com
+description: >- 
+  Your daily digest of artificial intelligence news from Japan,
+  curated and summarized by AI.
+baseurl: "" 
+url: "https://github.com/shengangli/jellky.git"
+twitter_username: yourtwitter
+github_username:  yourgithub
+
+# Build settings
+theme: minima
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+  - jekyll-sitemap
+
+# Post settings
+permalink: /:year/:month/:day/:title/
+excerpt_separator: <!--more-->
+
+# Collections
+collections:
+  posts:
+    output: true
+    permalink: /blog/:year/:month/:day/:title/
+
+# Defaults
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+      author: "AI Newsletter Bot"
