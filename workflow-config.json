@@ -1,0 +1,238 @@
+{
+  "workflow": {
+    "name": "AI Japan News Newsletter Generator - Enhanced",
+    "version": "2.0.0",
+    "description": "Automated AI Japan newsletter generation with multi-source aggregation"
+  },
+  "schedule": {
+    "enabled": true,
+    "frequency": "daily",
+    "time": "08:00",
+    "timezone": "Asia/Tokyo"
+  },
+  "dataSources": {
+    "newsapi": {
+      "enabled": true,
+      "baseUrl": "https://newsapi.org/v2/everything",
+      "defaultQuery": "(AI OR artificial intelligence OR 人工知能) AND (Japan OR 日本)",
+      "pageSize": 30,
+      "sortBy": "relevancy",
+      "timeRange": "1d"
+    },
+    "rss": {
+      "enabled": true,
+      "timeout": 10000,
+      "maxFeedsPerExecution": 10,
+      "sources": [
+        {
+          "url": "https://www.japantimes.co.jp/feed",
+          "name": "Japan Times",
+          "category": "general",
+          "priority": "high",
+          "language": "en"
+        },
+        {
+          "url": "https://asia.nikkei.com/rss/feed/technology",
+          "name": "Nikkei Asia Tech",
+          "category": "tech",
+          "priority": "high",
+          "language": "en"
+        },
+        {
+          "url": "https://techcrunch.com/category/artificial-intelligence/feed/",
+          "name": "TechCrunch AI",
+          "category": "ai",
+          "priority": "medium",
+          "language": "en"
+        },
+        {
+          "url": "https://feeds.feedburner.com/ArtificialIntelligenceNews-ScienceDaily",
+          "name": "Science Daily AI",
+          "category": "research",
+          "priority": "medium",
+          "language": "en"
+        },
+        {
+          "url": "https://venturebeat.com/ai/feed/",
+          "name": "VentureBeat AI",
+          "category": "business",
+          "priority": "low",
+          "language": "en"
+        }
+      ]
+    },
+    "reddit": {
+      "enabled": true,
+      "subreddits": ["artificial", "MachineLearning", "singularity"],
+      "searchQuery": "Japan OR Tokyo OR Japanese",
+      "limit": 25,
+      "timeFilter": "day",
+      "sortBy": "new",
+      "minScore": 5
+    }
+  },
+  "contentProcessing": {
+    "deduplication": {
+      "enabled": true,
+      "urlSimilarityThreshold": 0.8,
+      "titleSimilarityThreshold": 0.7,
+      "maxArticlesAfterDedup": 20
+    },
+    "extraction": {
+      "enabled": true,
+      "timeout": 15000,
+      "maxRetries": 3,
+      "userAgent": "Mozilla/5.0 (compatible; n8n-newsletter-bot/1.0)",
+      "maxContentLength": 15000
+    },
+    "llm": {
+      "model": "gpt-4-turbo-preview",
+      "temperature": 0.3,
+      "maxTokens": 1000,
+      "extractionPrompt": "Extract the main article text from this HTML. Focus on the core content, removing navigation, ads, and irrelevant elements.",
+      "fallbackToDescription": true
+    },
+    "scoring": {
+      "weights": {
+        "contentQuality": 3,
+        "contentLength": 2,
+        "japanRelevance": 2,
+        "aiRelevance": 2,
+        "sourceQuality": 2,
+        "recency": 2
+      },
+      "japanKeywords": ["japan", "tokyo", "japanese", "日本", "東京", "nippon"],
+      "aiKeywords": ["ai", "artificial intelligence", "machine learning", "deep learning", "neural", "robot", "人工知能", "ロボット"],
+      "premiumSources": ["reuters", "bloomberg", "nikkei", "japan times", "techcrunch", "venturebeat"],
+      "maxArticlesInNewsletter": 10
+    }
+  },
+  "newsletter": {
+    "generation": {
+      "model": "gpt-4-turbo-preview",
+      "temperature": 0.7,
+      "maxTokens": 3000,
+      "style": "professional",
+      "tone": "informative",
+      "includeQuickBytes": true,
+      "includeTrendAnalysis": true,
+      "includeTomorrowWatch": true
+    },
+    "structure": {
+      "title": {
+        "format": "AI Japan Daily - {date}",
+        "includeDate": true,
+        "maxLength": 80
+      },
+      "sections": {
+        "executiveSummary": {
+          "enabled": true,
+          "maxSentences": 3
+        },
+        "topStories": {
+          "enabled": true,
+          "count": 5,
+          "summaryLength": "2-3 paragraphs"
+        },
+        "quickBytes": {
+          "enabled": true,
+          "count": 4,
+          "maxLength": "1-2 sentences"
+        },
+        "trendAnalysis": {
+          "enabled": true,
+          "focus": "emerging patterns"
+        },
+        "tomorrowWatch": {
+          "enabled": true,
+          "focus": "upcoming events"
+        }
+      }
+    },
+    "jekyll": {
+      "frontmatter": {
+        "layout": "post",
+        "categories": ["newsletter", "ai", "japan"],
+        "tags": ["artificial-intelligence", "japan-tech", "daily-digest", "innovation"],
+        "author": "AI Newsletter Bot",
+        "excerptLength": 200
+      },
+      "filename": {
+        "format": "{date}-{slug}.md",
+        "slugMaxLength": 50,
+        "slugSeparator": "-"
+      },
+      "postsDirectory": "_posts"
+    }
+  },
+  "publishing": {
+    "github": {
+      "enabled": true,
+      "owner": "shengangli",
+      "repository": "jellky",
+      "branch": "main",
+      "commitMessage": "Add AI Japan Newsletter: {title}",
+      "filePath": "_posts/{filename}"
+    },
+    "notifications": {
+      "slack": {
+        "enabled": false,
+        "channel": "#ai-newsletter",
+        "message": "🎌 New AI Japan Newsletter Published!\n\n*{title}*\n\nRead it here: {url}\n\n_Published at {time}_",
+        "includeMetrics": true
+      },
+      "email": {
+        "enabled": false,
+        "from": "newsletter@yourdomain.com",
+        "to": ["your-email@example.com"],
+        "subject": "AI Japan Newsletter Published: {title}",
+        "includeMetrics": false
+      },
+      "webhook": {
+        "enabled": false,
+        "url": "",
+        "method": "POST",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "payload": {
+          "event": "newsletter_published",
+          "title": "{title}",
+          "url": "{url}",
+          "timestamp": "{timestamp}"
+        }
+      }
+    }
+  },
+  "errorHandling": {
+    "continueOnSourceFailure": true,
+    "maxConsecutiveFailures": 3,
+    "retryDelaySeconds": 30,
+    "fallbackToCache": false,
+    "notifyOnFailure": true
+  },
+  "performance": {
+    "parallelSourceFetching": true,
+    "requestDelayMs": 1000,
+    "batchSize": 5,
+    "timeoutMs": 30000,
+    "cacheResults": false
+  },
+  "testing": {
+    "dryRun": false,
+    "logLevel": "info",
+    "saveIntermediateResults": false,
+    "testDataPath": "./test-data/",
+    "mockExternalAPIs": false
+  },
+  "monitoring": {
+    "trackExecutionTime": true,
+    "trackSourceMetrics": true,
+    "trackContentQuality": true,
+    "alertThresholds": {
+      "minArticlesFound": 5,
+      "maxExecutionTimeMinutes": 15,
+      "minContentQualityScore": 0.6
+    }
+  }
+} 

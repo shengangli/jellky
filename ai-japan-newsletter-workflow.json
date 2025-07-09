@@ -1,0 +1,588 @@
+{
+  "meta": {
+    "instanceId": "enhanced-ai-japan-newsletter"
+  },
+  "name": "AI Japan News Newsletter Generator - Enhanced",
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "connections": {
+    "schedule-trigger": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "newsapi-request",
+            "type": "main"
+          },
+          {
+            "index": 0,
+            "node": "rss-sources", 
+            "type": "main"
+          },
+          {
+            "index": 0,
+            "node": "reddit-fetch",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "rss-sources": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "rss-fetch",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "newsapi-request": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "process-newsapi",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "rss-fetch": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "process-rss",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "reddit-fetch": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "process-reddit",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "process-newsapi": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "merge-sources",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "process-rss": {
+      "main": [
+        [
+          {
+            "index": 1,
+            "node": "merge-sources",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "process-reddit": {
+      "main": [
+        [
+          {
+            "index": 2,
+            "node": "merge-sources",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "merge-sources": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "deduplicate",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "deduplicate": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "fetch-article",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "fetch-article": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "extract-content",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "extract-content": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "combine-extraction",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "combine-extraction": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "select-best",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "select-best": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "generate-newsletter",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "generate-newsletter": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "format-post",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "format-post": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "github-create",
+            "type": "main"
+          },
+          {
+            "index": 0,
+            "node": "slack-notify",
+            "type": "main"
+          },
+          {
+            "index": 0,
+            "node": "email-notify",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "nodes": [
+    {
+      "id": "sticky-note",
+      "name": "Enhanced Features",
+      "notes": "",
+      "parameters": {
+        "content": "## Enhanced AI Japan Newsletter Workflow\n\nThis workflow now includes:\n1. ✅ Full article text extraction\n2. ✅ Multiple news sources\n3. ✅ LLM-powered content cleaning\n4. ✅ Better deduplication\n5. ✅ Rich newsletter generation\n\n### Setup Required:\n1. Get API keys:\n   - NewsAPI: https://newsapi.org\n   - OpenAI: GPT-4 access\n   - SerpAPI (optional): https://serpapi.com\n   \n2. Configure GitHub OAuth in n8n\n\n3. Update RSS feeds in the\n   \"Fetch RSS Feeds\" node\n\n4. Test with manual execution first!",
+        "height": 400,
+        "width": 350
+      },
+      "position": [220, 50],
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1
+    },
+    {
+      "id": "schedule-trigger",
+      "name": "Daily Trigger",
+      "notes": "Runs daily at your specified time",
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24
+            }
+          ]
+        }
+      },
+      "position": [250, 300],
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1
+    },
+    {
+      "id": "newsapi-request",
+      "name": "Fetch NewsAPI",
+      "notes": "",
+      "parameters": {
+        "method": "GET",
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "apiKey",
+              "value": "={{ $vars.NEWS_API_KEY }}"
+            },
+            {
+              "name": "from",
+              "value": "={{ $now.minus({days: 1}).format('yyyy-MM-dd') }}"
+            },
+            {
+              "name": "pageSize",
+              "value": "={{ $vars.NEWS_API_PAGE_SIZE || '30' }}"
+            },
+            {
+              "name": "q",
+              "value": "={{ $vars.NEWS_API_QUERY || '(AI OR artificial intelligence OR 人工知能) AND (Japan OR 日本)' }}"
+            },
+            {
+              "name": "sortBy",
+              "value": "relevancy"
+            }
+          ]
+        },
+        "sendQuery": true,
+        "url": "https://newsapi.org/v2/everything"
+      },
+      "position": [450, 200],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1
+    },
+    {
+      "id": "rss-sources",
+      "name": "RSS Feed Sources",
+      "notes": "",
+      "parameters": {
+        "jsCode": "// Load RSS feed configuration from external file\nreturn require('./templates/rss-sources.js').getRSSFeeds($vars);"
+      },
+      "position": [250, 350],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "rss-fetch",
+      "name": "Fetch RSS Feeds",
+      "notes": "",
+      "parameters": {
+        "options": {
+          "timeout": 10000
+        },
+        "url": "={{ $json.feedUrl }}"
+      },
+      "position": [450, 350],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "executeOnce": false
+    },
+    {
+      "id": "reddit-fetch",
+      "name": "Fetch Reddit AI",
+      "notes": "",
+      "parameters": {
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "n8n-bot/1.0"
+            }
+          ]
+        },
+        "method": "GET",
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "limit",
+              "value": "{{ $vars.REDDIT_LIMIT || '25' }}"
+            },
+            {
+              "name": "q",
+              "value": "{{ $vars.REDDIT_QUERY || 'Japan OR Tokyo OR Japanese' }}"
+            },
+            {
+              "name": "restrict_sr",
+              "value": "true"
+            },
+            {
+              "name": "sort",
+              "value": "new"
+            },
+            {
+              "name": "t",
+              "value": "day"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "sendQuery": true,
+        "url": "https://www.reddit.com/r/artificial/search.json"
+      },
+      "position": [450, 500],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1
+    },
+    {
+      "id": "process-newsapi",
+      "name": "Process NewsAPI",
+      "notes": "",
+      "parameters": {
+        "jsCode": "// Load NewsAPI processing logic from external file\nreturn require('./templates/process-newsapi.js').processNewsAPI($input);"
+      },
+      "position": [650, 200],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "process-rss",
+      "name": "Process RSS",
+      "notes": "",
+      "parameters": {
+        "jsCode": "// Load RSS processing logic from external file\nreturn require('./templates/process-rss.js').processRSS($input);"
+      },
+      "position": [650, 350],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "process-reddit",
+      "name": "Process Reddit",
+      "notes": "",
+      "parameters": {
+        "jsCode": "// Load Reddit processing logic from external file\nreturn require('./templates/process-reddit.js').processReddit($input);"
+      },
+      "position": [650, 500],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "merge-sources",
+      "name": "Merge All Sources",
+      "notes": "",
+      "parameters": {
+        "combinationMode": "multiplex",
+        "mode": "combine",
+        "options": {}
+      },
+      "position": [850, 350],
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2.1
+    },
+    {
+      "id": "deduplicate",
+      "name": "Deduplicate Articles",
+      "notes": "",
+      "parameters": {
+        "jsCode": "// Load deduplication logic from external file\nreturn require('./templates/deduplicate.js').deduplicateArticles($input, $vars);"
+      },
+      "position": [1050, 350],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "fetch-article",
+      "name": "Fetch Full Article",
+      "notes": "",
+      "parameters": {
+        "headerParametersUi": {
+          "parameter": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; n8n-bot/1.0)"
+            }
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {
+              "followRedirects": true,
+              "maxRedirects": 3
+            }
+          },
+          "timeout": 15000
+        },
+        "url": "={{ $json.url }}"
+      },
+      "position": [1250, 350],
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "alwaysOutputData": true,
+      "continueOnFail": true
+    },
+    {
+      "id": "extract-content",
+      "name": "LLM Extract Content",
+      "notes": "",
+      "parameters": {
+        "messages": {
+          "values": [
+            {
+              "content": "You are an expert at extracting clean article text from HTML. Extract the main article content, removing all navigation, ads, and irrelevant elements. If the HTML is too messy or the article can't be extracted, use the provided description/summary instead.",
+              "role": "system"
+            },
+            {
+              "content": "Extract the main article text from this HTML. If you can't find clear article content, return the description instead.\n\nTitle: {{ $json.title }}\nDescription: {{ $json.description }}\nSource: {{ $json.source }}\n\nHTML Content (first 15000 chars):\n{{ $json.html ? $json.html.slice(0, 15000) : 'No HTML available' }}\n\nReturn a clean extraction with:\n1. Main article text (or description if HTML extraction fails)\n2. Any important quotes or statistics\n3. Key points mentioned\n\nFormat as clean text, no HTML.",
+              "role": "user"
+            }
+          ]
+        },
+        "model": "gpt-4-turbo-preview",
+        "options": {
+          "maxTokens": 1000,
+          "temperature": 0.3
+        },
+        "resource": "chatCompletion"
+      },
+      "position": [1450, 350],
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3
+    },
+    {
+      "id": "combine-extraction",
+      "name": "Combine with Extraction",
+      "notes": "",
+      "parameters": {
+        "jsCode": "// Load extraction combination logic from external file\nreturn require('./templates/combine-extraction.js').combineExtraction($input);"
+      },
+      "position": [1650, 350],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "select-best",
+      "name": "Select Best Articles",
+      "notes": "",
+      "parameters": {
+        "jsCode": "// Load article selection logic from external file\nreturn require('./templates/select-best.js').selectBestArticles($input, $vars);"
+      },
+      "position": [1850, 350],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "generate-newsletter",
+      "name": "Generate Newsletter",
+      "notes": "",
+      "parameters": {
+        "messages": {
+          "values": [
+            {
+              "content": "You are the editor of AI Japan Daily, a premier newsletter covering artificial intelligence developments in Japan. Create engaging, informative newsletter content that provides real value to readers interested in Japan's AI landscape.",
+              "role": "system"
+            },
+            {
+              "content": "Create a comprehensive daily newsletter based on these articles. Include:\n\n1. **Catchy Newsletter Title** - Make it compelling and specific to today's news\n2. **Executive Summary** - 2-3 sentences capturing the day's biggest stories\n3. **Top Stories** - 3-5 main stories with:\n   - Engaging headline\n   - 2-3 paragraph summary\n   - Key implications or takeaways\n   - Source attribution\n4. **Quick Bytes** - 3-4 brief news items (1-2 sentences each)\n5. **Trend Analysis** - Brief observation about emerging patterns\n6. **Tomorrow's Watch** - What to look out for\n\nArticles data:\n{{ JSON.stringify($json.articles, null, 2) }}\n\nFormat in Markdown. Make it informative yet engaging. Include specific details, numbers, and quotes where available.",
+              "role": "user"
+            }
+          ]
+        },
+        "model": "gpt-4-turbo-preview",
+        "options": {
+          "maxTokens": 3000,
+          "temperature": 0.7
+        },
+        "resource": "chatCompletion"
+      },
+      "position": [2050, 350],
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.3
+    },
+    {
+      "id": "format-post",
+      "name": "Format Jekyll Post",
+      "notes": "",
+      "parameters": {
+        "jsCode": "// Load Jekyll formatting logic from external file\nreturn require('./templates/format-post.js').formatJekyllPost($input, $vars);"
+      },
+      "position": [2250, 350],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "github-create",
+      "name": "Publish to GitHub",
+      "notes": "",
+      "parameters": {
+        "additionalParameters": {},
+        "authentication": "oAuth2",
+        "commitMessage": "Add AI Japan Newsletter: {{ $json.title }}",
+        "fileContent": "={{ $json.content }}",
+        "operation": "create",
+        "owner": "{{ $vars.GITHUB_OWNER || 'shengangli' }}",
+        "path": "={{ $json.path }}",
+        "repository": "{{ $vars.GITHUB_REPO || 'jellky' }}",
+        "resource": "file"
+      },
+      "position": [2450, 350],
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1
+    },
+    {
+      "id": "notification-note",
+      "name": "Optional Notifications",
+      "notes": "",
+      "parameters": {
+        "content": "## Optional: Notification Setup\n\nYou can enable these nodes to get notified when newsletters are published:\n\n1. **Slack** - Team notifications\n2. **Email** - Personal alerts\n3. **Webhook** - Custom integrations\n\nJust configure credentials and enable the nodes!",
+        "height": 180,
+        "width": 300
+      },
+      "position": [2650, 200],
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1
+    },
+    {
+      "id": "slack-notify",
+      "name": "Slack Notification",
+      "notes": "",
+      "parameters": {
+        "authentication": "oAuth2",
+        "channel": "{{ $vars.SLACK_CHANNEL || '#ai-newsletter' }}",
+        "text": "🎌 New AI Japan Newsletter Published!\n\n*{{ $json.title }}*\n\nRead it here: {{ $vars.WEBSITE_BASE_URL || 'https://shengangli.github.io/jellky' }}/{{ $json.date.substring(0,4) }}/{{ $json.date.substring(5,7) }}/{{ $json.date.substring(8,10) }}/{{ $json.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 50) }}/\n\n_Published at {{ new Date().toLocaleTimeString() }}_"
+      },
+      "position": [2650, 350],
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.1,
+      "disabled": true
+    },
+    {
+      "id": "email-notify",
+      "name": "Email Notification",
+      "notes": "",
+      "parameters": {
+        "fromEmail": "{{ $vars.EMAIL_FROM || 'newsletter@yourdomain.com' }}",
+        "options": {},
+        "subject": "AI Japan Newsletter Published: {{ $json.title }}",
+        "text": "Your daily AI Japan newsletter has been published!\n\nTitle: {{ $json.title }}\n\nRead it at: {{ $vars.WEBSITE_BASE_URL || 'https://shengangli.github.io/jellky' }}/{{ $json.date.substring(0,4) }}/{{ $json.date.substring(5,7) }}/{{ $json.date.substring(8,10) }}/{{ $json.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 50) }}/\n\nPublished on: {{ $json.date }}",
+        "toEmail": "{{ $vars.EMAIL_TO || 'your-email@example.com' }}"
+      },
+      "position": [2650, 500],
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "disabled": true
+    }
+  ]
+} 
